@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dải Ngân Hà Kỷ Niệm</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+
+<style>
+:root { --pink: #ff4d6d; }
+
+body {
+    margin: 0;
+    background: #000;
+    color: var(--pink);
+    font-family: 'Dancing Script', cursive;
+    overflow: hidden;
+    height: 100vh;
+    cursor: pointer;
+}
+
+/* ===== SAO (ĐÃ GIẢM SỐ LƯỢNG) ===== */
+#star-field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+}
+.star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    will-change: transform, opacity;
+    animation: twinkle var(--d) infinite ease-in-out;
+}
+@keyframes twinkle {
+    0%,100% { opacity: .3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+}
+
+/* ===== VẬT THỂ BAY ===== */
+#galaxy {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.floating-item {
+    position: absolute;
+    bottom: -300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    will-change: transform;
+    animation: flyUp linear forwards;
+}
+.floating-item img {
+    width: 120px;
+    border-radius: 12px;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 12px rgba(255,77,109,.4);
+}
+.floating-item span {
+    margin-top: 6px;
+    font-size: 22px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px #000;
+    white-space: nowrap;
+}
+
+@keyframes flyUp {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-150vh); opacity: 0; }
+}
+
+/* ===== TIM ===== */
+.heart {
+    position: fixed;
+    font-size: 30px;
+    pointer-events: none;
+    z-index: 2000;
+    animation: heartFly 1s ease-out forwards;
+}
+@keyframes heartFly {
+    to {
+        transform: translateY(-150px) scale(2);
+        opacity: 0;
+    }
+}
+
+/* ===== THƯ ===== */
+#letter {
+    display: none;
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: 85%;
+    max-width: 400px;
+    height: fit-content;
+    background: #fff;
+    color: #222;
+    padding: 30px;
+    border-radius: 20px;
+    border: 2px solid var(--pink);
+    box-shadow: 0 0 30px var(--pink);
+    text-align: center;
+    z-index: 1000;
+}
+#letter button {
+    padding: 10px 20px;
+    background: var(--pink);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body onclick="handleClick(event)" ondblclick="showLetter()">
+
+<div id="star-field"></div>
+<div id="galaxy"></div>
+
+<audio id="bg-music" loop>
+    <source src="https://files.catbox.moe/pdx0di.mp3" type="audio/mpeg">
+</audio>
+
+<div id="letter">
+    <h2 style="color:var(--pink)">Gửi cậu ❤️</h2>
+    <p>Giữa hàng tỷ ngôi sao, thật may mắn vì gặp được nhau.</p>
+    <p>Liệu chúng mình có cơ hội đi xa hơn không?</p>
+    <button onclick="closeLetter(event)">Đóng lại</button>
+</div>
+
+<script>
+/* ===== SAO ===== */
+const starField = document.getElementById('star-field');
+const STAR_COUNT = 120;
+
+for (let i = 0; i < STAR_COUNT; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 1;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--d', Math.random() * 3 + 2 + 's');
+    starField.appendChild(s);
+}
+
+/* ===== NỘI DUNG ===== */
+const texts = [
+    "Cảm ơn vì đã đến ❤️",
+    "Only You",
+    "Always and Forever",
+    "Only You",
+    "Cảm ơn vì đã đến ❤️",
+    "🌹 Cảm ơn vì đã đến"
+];
+
+const images = [
+    "https://uploads.onecompiler.io/447zjgzuc/447zezy92/6206919c-2fc8-4e1f-acaf-9cdf526d21ba.jpg",
+    "https://uploads.onecompiler.io/447zjgzuc/447zezy92/e4aac67f-0bca-472f-a7ff-c6129bcdabd6.jpg",
+    "https://uploads.onecompiler.io/447zjgzuc/447zezy92/edd9bd93-5024-47fb-8e52-fba251d504cc.jpg",
+    "https://uploads.onecompiler.io/447zjgzuc/447zezy92/b066c7b7-fede-4da5-be65-478eb8fc00ab.jpg"
+];
+
+/* ===== VẬT THỂ BAY (GIỚI HẠN SỐ LƯỢNG) ===== */
+const galaxy = document.getElementById('galaxy');
+let activeItems = 0;
+const MAX_ITEMS = 15;
+
+function createItem() {
+    if (activeItems >= MAX_ITEMS) return;
+    activeItems++;
+
+    const item = document.createElement('div');
+    item.className = 'floating-item';
+
+    if (Math.random() > 0.7) {
+        const img = document.createElement('img');
+        img.src = images[Math.floor(Math.random() * images.length)];
+        img.loading = "lazy";
+        item.appendChild(img);
+    }
+
+    const span = document.createElement('span');
+    span.textContent = texts[Math.floor(Math.random() * texts.length)];
+    item.appendChild(span);
+
+    item.style.left = Math.random() * 85 + 5 + '%';
+    const duration = Math.random() * 3 + 6;
+    item.style.animationDuration = duration + 's';
+
+    galaxy.appendChild(item);
+
+    setTimeout(() => {
+        item.remove();
+        activeItems--;
+    }, duration * 1000);
+}
+
+setInterval(createItem, 1000);
+
+/* ===== TIM + NHẠC ===== */
+let musicStarted = false;
+
+function handleClick(e) {
+    spawnHeart(e);
+
+    if (!musicStarted) {
+        document.getElementById('bg-music').play().catch(()=>{});
+        musicStarted = true;
+    }
+}
+
+function spawnHeart(e) {
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.style.left = e.clientX + 'px';
+    h.style.top = e.clientY + 'px';
+    h.innerHTML = '❤️';
+    document.body.appendChild(h);
+    h.addEventListener('animationend', () => h.remove());
+}
+
+/* ===== THƯ ===== */
+function showLetter() {
+    document.getElementById('letter').style.display = 'block';
+}
+function closeLetter(e) {
+    e.stopPropagation();
+    document.getElementById('letter').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
